@@ -1,0 +1,9 @@
+12-12 14:09:06.288 Network Arch: network.EBLNet.EBLNet_resnet50_os8
+12-12 14:09:06.289 CV split: 0
+12-12 14:09:06.289 Exp_name: 
+12-12 14:09:06.289 Ckpt path: results/
+12-12 14:09:06.289 Scales : 1.0
+12-12 14:09:06.290 Inference mode: whole
+12-12 14:09:06.290 Trans10k has a total of 2 images in test phase
+12-12 14:09:06.290 Trains10k-test: 2 images
+12-12 14:09:06.292 Load model file: checkpoints/

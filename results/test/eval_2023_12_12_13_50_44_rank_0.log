@@ -1,0 +1,6 @@
+12-12 13:50:44.625 Network Arch: network.EBLNet.EBLNet_resnet50_os8
+12-12 13:50:44.625 CV split: 0
+12-12 13:50:44.625 Exp_name: 
+12-12 13:50:44.625 Ckpt path: results/
+12-12 13:50:44.625 Scales : 1.0
+12-12 13:50:44.626 Inference mode: whole

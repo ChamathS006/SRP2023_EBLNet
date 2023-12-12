@@ -1,0 +1,21 @@
+# Virtual Environments
+/venv
+/virtualenv
+
+# Pyc files
+/pyc
+/pyx
+
+# Data
+/data
+
+/apex
+
+/datasets/__pycache__
+/network/__pycache__
+/network/nn/__pycache__
+/transforms/__pycache__
+/utils/__pycache__
+/__pycache__
+
+/network/csur0006/pretrained_models
