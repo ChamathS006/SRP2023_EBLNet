@@ -279,8 +279,18 @@ def resnet50(pretrained=True, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         # model.load_state_dict(torch.load("./pretrained_models/resnet50-deep.pth", map_location='cpu'))
-        model.load_state_dict(torch.load("/home/cham_s_computer/SRP2023_EBLNet/network/csur0006/pretrained_models/Trans10k_resnet50_os8.pth", map_location='cpu'))    
-        # model.load_state_dict(torch.load("/home/cham_s_computer/SRP2023_EBLNet/network/csur0006/pretrained_models/Trans10k_resnet50_os8.pth", map_location='cpu'), strict=False)    
+        # state_dict =torch.load("/home/cham_s_computer/SRP2023_EBLNet/network/csur0006/pretrained_models/Trans10k_resnet50_os8.pth", map_location='cpu')
+        # remove_prefix = 'module.'
+        # state_dict = {k[len(remove_prefix):] if k.startswith(remove_prefix) else k: v for k, v in state_dict.items()}
+        # model.load_state_dict(state_dict)
+
+        # state_dict = torch.load("/home/cham_s_computer/SRP2023_EBLNet/network/csur0006/pretrained_models/resnet50-deep.pth", map_location='cpu')['state_dict']
+        # remove_prefix = 'module.'
+        # state_dict = {k[len(remove_prefix):] if k.startswith(remove_prefix) else k: v for k, v in state_dict.items()}
+        # model.load_state_dict(state_dict)    
+
+        model.load_state_dict(torch.load("/home/cham_s_computer/SRP2023_EBLNet/network/csur0006/pretrained_models/resnet50-deep.pth", map_location='cpu'))    
+        # model.load_state_dict(torch.load("/home/cham_s_computer/SRP2023_EBLNet/network/csur0006/pretrained_models/resnet50-deep.pth", map_location='cpu'), strict=False)    
     return model
 
 
