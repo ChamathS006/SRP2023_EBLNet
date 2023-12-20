@@ -1,0 +1,9 @@
+12-20 17:46:28.639 Network Arch: network.EBLNet.EBLNet_resnet50_os8
+12-20 17:46:28.639 CV split: 0
+12-20 17:46:28.639 Exp_name: 
+12-20 17:46:28.639 Ckpt path: results
+12-20 17:46:28.639 Scales : 1.0
+12-20 17:46:28.639 Inference mode: whole
+12-20 17:46:28.653 Trans10k has a total of 4428 images in test phase
+12-20 17:46:28.653 Trains10k-test: 4428 images
+12-20 17:46:28.655 Load model file: checkpoints/Trans10k_resnet50_os8.pth

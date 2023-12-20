@@ -289,7 +289,7 @@ def resnet50(pretrained=True, **kwargs):
         # state_dict = {k[len(remove_prefix):] if k.startswith(remove_prefix) else k: v for k, v in state_dict.items()}
         # model.load_state_dict(state_dict)    
 
-        model.load_state_dict(torch.load("/home/cham_s_computer/SRP2023_EBLNet/network/csur0006/pretrained_models/resnet50-deep.pth", map_location='cpu'))    
+        model.load_state_dict(torch.load("network/csur0006/pretrained_networks/resnet50-deep.pth", map_location='cpu'))    
         # model.load_state_dict(torch.load("/home/cham_s_computer/SRP2023_EBLNet/network/csur0006/pretrained_models/resnet50-deep.pth", map_location='cpu'), strict=False)    
     return model
 

@@ -40,7 +40,7 @@ sys.path.append(os.path.join(os.getcwd()))
 sys.path.append(os.path.join(os.getcwd(), '../'))
 
 parser = argparse.ArgumentParser(description='evaluation')
-parser.add_argument('--dump_images', action='store_true', default=False)
+parser.add_argument('--dump_images', action='store_false', default=True)
 parser.add_argument('--arch', type=str, default='', required=True)
 parser.add_argument('--single_scale', action='store_true', default=False)
 parser.add_argument('--scales', type=str, default='0.5,1.0,2.0')
