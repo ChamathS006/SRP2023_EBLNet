@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-echo "Running inference on" ${1}
-echo "Saving Results :" ${2}
-python eval.py \
+# echo "Running inference on" ${1}
+# echo "Saving Results :" ${2}
+python infer.py \
 	--dataset video_folder \
     --arch network.EBLNet.EBLNet_resnet50_os8 \
     --inference_mode  whole \
     --single_scale \
     --scales 1.0 \
-    --split validation \
+    --split video_folder \
     --cv_split 0 \
     --resize_scale 512 \
     --mode semantic \

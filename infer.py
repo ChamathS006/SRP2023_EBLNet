@@ -26,7 +26,7 @@ import numpy as np
 import transforms.transforms as extended_transforms
 
 from config import assert_and_infer_cfg
-from datasets import MSD, Trans10k, GDD
+from datasets import MSD, Trans10k, GDD, video_folder
 from optimizer import restore_snapshot
 import transforms.joint_transforms as joint_transforms
 
@@ -403,36 +403,47 @@ def setup_loader():
     """
     Setup Data Loaders
     """
-    val_input_transform = transforms.ToTensor()
-    target_transform = extended_transforms.MaskToTensor()
-    val_joint_transform_list = [joint_transforms.Resize(args.resize_scale)]
-    if args.dataset == 'Trans10k' or args.dataset == 'MSD' or args.dataset == 'GDD':
-        val_joint_transform_list = [joint_transforms.Resize(args.resize_scale)]
-        val_input_transform = transforms.Compose([transforms.ToTensor()])
+    if args.dataset != 'video_folder':
+        val_input_transform = transforms.ToTensor()
         target_transform = extended_transforms.MaskToTensor()
+        val_joint_transform_list = [joint_transforms.Resize(args.resize_scale)]
+        if args.dataset == 'Trans10k' or args.dataset == 'MSD' or args.dataset == 'GDD':
+            val_joint_transform_list = [joint_transforms.Resize(args.resize_scale)]
+            val_input_transform = transforms.Compose([transforms.ToTensor()])
+            target_transform = extended_transforms.MaskToTensor()
 
-    if args.dataset == 'MSD':
-        args.dataset_cls = MSD
-        test_set = args.dataset_cls.MSDDateset(args.mode, args.split,
-                                               joint_transform_list=val_joint_transform_list,
-                                               transform=val_input_transform,
-                                               target_transform=target_transform)
-    elif args.dataset == 'Trans10k':
-        args.dataset_cls = Trans10k
-        test_set = args.dataset_cls.Trains10kDataset(args.mode, args.split,
-                                                     joint_transform_list=val_joint_transform_list,
-                                                     transform=val_input_transform,
-                                                     target_transform=target_transform)
-    elif args.dataset == 'GDD':
-        args.dataset_cls = GDD
-        test_set = args.dataset_cls.GDDDateset(args.mode, args.split,
-                                               joint_transform_list=val_joint_transform_list,
-                                               transform=val_input_transform,
-                                               target_transform=target_transform)
-    #elif args.dataset == 'video_folder':
-        # pass
+        if args.dataset == 'MSD':
+            args.dataset_cls = MSD
+            test_set = args.dataset_cls.MSDDateset(args.mode, args.split,
+                                                joint_transform_list=val_joint_transform_list,
+                                                transform=val_input_transform,
+                                                target_transform=target_transform)
+        elif args.dataset == 'Trans10k':
+            args.dataset_cls = Trans10k
+            test_set = args.dataset_cls.Trains10kDataset(args.mode, args.split,
+                                                        joint_transform_list=val_joint_transform_list,
+                                                        transform=val_input_transform,
+                                                        target_transform=target_transform)
+        elif args.dataset == 'GDD':
+            args.dataset_cls = GDD
+            test_set = args.dataset_cls.GDDDateset(args.mode, args.split,
+                                                joint_transform_list=val_joint_transform_list,
+                                                transform=val_input_transform,
+                                                target_transform=target_transform)
+        else:
+            raise NameError('-------------Not Supported Currently-------------')
+
     else:
-        raise NameError('-------------Not Supported Currently-------------')
+        # Use specific transforms that only accept images, not image and mask pairs
+        # val_input_transform = transforms.ToTensor()
+        val_joint_transform_list = [transforms.Resize(args.resize_scale)]
+        val_input_transform = transforms.Compose([transforms.ToTensor()])
+        args.dataset_cls = video_folder
+        test_set = args.dataset_cls.InferBurst(args.mode, args.split,
+                                                joint_transform_list=val_joint_transform_list,
+                                                transform=val_input_transform)
+        
+        
 
     if args.split_count > 1:
         test_set.split_dataset(args.split_index, args.split_count)
@@ -507,7 +518,7 @@ class RunEval():
         e_x = np.exp(x - np.max(x))
         return e_x / e_x.sum(axis=0)  # only difference
 
-    def inf(self, imgs, img_names, gt, inference, net, scales, base_img):
+    def inf(self, imgs, img_names, inference, net, scales, base_img):
 
         ######################################################################
         # Run inference
@@ -533,15 +544,15 @@ class RunEval():
             prediction_pre_argmax = np.mean(prediction_pre_argmax_collection, axis=0)
             prediction = np.argmax(prediction_pre_argmax, axis=0)
 
-        if self.metrics:
-            self.hist += fast_hist(prediction.flatten(), gt.cpu().numpy().flatten(),
-                                   self.dataset_cls.num_classes)
-            if self.with_mae_ber:
-                self.total_mae.append(cal_mae(prediction, gt.squeeze().cpu().numpy()))
-                temp_bers, temp_bers_count = cal_ber(prediction, gt.squeeze().cpu().numpy(),
-                                                     self.dataset_cls.num_classes)
-                self.total_bers += temp_bers
-                self.total_bers_count += temp_bers_count
+        # if self.metrics:
+        #     self.hist += fast_hist(prediction.flatten(), gt.cpu().numpy().flatten(),
+        #                            self.dataset_cls.num_classes)
+        #     if self.with_mae_ber:
+        #         self.total_mae.append(cal_mae(prediction, gt.squeeze().cpu().numpy()))
+        #         temp_bers, temp_bers_count = cal_ber(prediction, gt.squeeze().cpu().numpy(),
+        #                                              self.dataset_cls.num_classes)
+        #         self.total_bers += temp_bers
+        #         self.total_bers_count += temp_bers_count
             # iou = round(np.nanmean(per_class_iu(self.hist)) * 100, 2)
             # pbar.set_description("Mean IOU: %s" % (str(iou)))
 
@@ -558,16 +569,16 @@ class RunEval():
             blend = Image.blend(img.convert("RGBA"), colorized.convert("RGBA"), 0.5)
             blend.save(compose_img_name)
 
-            if gt is not None and args.split != 'test':
-                gt = gt[0].cpu().numpy()
-                # only write diff image if gt is valid
-                diff = (prediction != gt)
-                diff[gt == 255] = 0
-                diffimg = Image.fromarray(diff.astype('uint8') * 255)
-                PIL.ImageChops.lighter(
-                    blend,
-                    PIL.ImageOps.invert(diffimg).convert("RGBA")
-                ).save(diff_img_name)
+            # if gt is not None and args.split != 'test':
+            #     gt = gt[0].cpu().numpy()
+            #     # only write diff image if gt is valid
+            #     diff = (prediction != gt)
+            #     diff[gt == 255] = 0
+            #     diffimg = Image.fromarray(diff.astype('uint8') * 255)
+            #     PIL.ImageChops.lighter(
+            #         blend,
+            #         PIL.ImageOps.invert(diffimg).convert("RGBA")
+            #     ).save(diff_img_name)
 
             label_out = np.zeros_like(prediction)
             for label_id, train_id in self.dataset_cls.label2trainid.items():
@@ -646,7 +657,7 @@ def main():
                      with_mae_ber=args.with_mae_ber,
                      beta=args.beta)
     net = get_net()
-
+    print(runner.write_image)
     # Fix the ASPP pool size to 105, which is the tensor size if you train with crop
     # size of 840x840
     if args.fixed_aspp_pool:
@@ -661,21 +672,29 @@ def main():
     else:
         raise 'Not a valid inference mode: {}'.format(args.inference_mode)
 
+    # print(test_loader.dataset.edge_map)
+
     # Run Inference!
     pbar = tqdm(test_loader, desc='eval {}'.format(args.split), smoothing=1.0)
     for iteration, data in enumerate(pbar):
         if args.inference_mode == 'pooling':
-            base_img, gt_with_imgs, img_names = data
+            base_img, img_names = data
             base_img = base_img[0]
-            imgs = gt_with_imgs[0]
-            gt = gt_with_imgs[1]
+            # imgs = gt_with_imgs[0]
+            # gt = gt_with_imgs[1]
         else:
             base_img = None
-            imgs, gt, img_names = data
+            imgs, img_names = data
 
-        runner.inf(imgs, img_names, gt, inference, net, scales, base_img)
+        # print(data[0].shape)
+
+        runner.inf(imgs, img_names, inference, net, scales, base_img)
         if iteration > 5 and args.test_mode:
             break
+
+    # Get image
+
+    # print(net)
 
     # Calculate final overall statistics
     runner.final_dump()

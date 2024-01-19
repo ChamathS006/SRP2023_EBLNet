@@ -44,6 +44,8 @@ __C.DATASET.MSD_DIR = './data/MSD'
 __C.DATASET.GDD_DIR = './data/GDD'
 # Trans10k Dataset Dir Location
 __C.DATASET.TRANS10K_DIR = './data/Trans10k'
+# video folder
+__C.DATASET.VIDEO_FOLDER = './data'
 
 #Number of splits to support
 __C.DATASET.CV_SPLITS = 3
@@ -91,3 +93,10 @@ def assert_and_infer_cfg(args, make_immutable=True, train_mode=True):
 
     if make_immutable:
         cfg.immutable(True)
+
+def assert_cfg_vid(make_immutable=True):
+    import apex
+    __C.MODEL.BN = 'apex-syncnorm'
+    __C.MODEL.BNFUNC = apex.parallel.SyncBatchNorm 
+    cfg.immutable(True)
+    return None
